@@ -32,10 +32,10 @@ if __name__ == '__main__':
 
     # Potential input images to test
     ###### Pairwise #####
-    image_list = [
-            '../assets/siteACC0003-finearts/siteACC0003-camA005-2023-10-16-13-32-00-000181.jpg',
-            '../assets/siteACC0003-finearts/siteACC0003-camA010-2023-12-21-19-43-25-000309.jpg', 
-    ]
+    # image_list = [
+    #         '../assets/siteACC0003-finearts/siteACC0003-camA005-2023-10-16-13-32-00-000181.jpg',
+    #         '../assets/siteACC0003-finearts/siteACC0003-camA010-2023-12-21-19-43-25-000309.jpg', 
+    # ]
 
     # image_list = [
     #         '../assets/siteACC0002-mall/siteACC0002-camA005-2023-10-17-15-29-00-000283.jpg',
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     # ]
 
     # image_list = [
-    #         '../assets/siteACC0003-finearts/siteACC0003-camA005-2023-10-19-11-38-16-000205.jpg',,
+    #         '../assets/siteACC0003-finearts/siteACC0003-camA005-2023-10-19-11-38-16-000205.jpg',
     #         '../assets/siteACC0003-finearts/siteACC0003-camA010-2023-12-21-19-43-25-000704.jpg',
     # ]
 
@@ -63,12 +63,12 @@ if __name__ == '__main__':
     # ]
 
     # ###### Multi-view (optimized using GlobalAligner) ######
-    # image_list = [
-    #         '../assets/siteACC0003-camA010-2023-12-21-19-43-25-000307.jpg',
-    #         '../assets/siteACC0003-camA005-2023-10-16-14-03-00-000176.jpg', 
-    #         '../assets/siteACC0003-camA005-2023-10-16-13-32-00-000201.jpg',
-    #         '../assets/siteACC0003-camA005-2023-10-16-12-33-00-000267.jpg',
-    # ]
+    image_list = [
+            '../assets/siteACC0003-finearts/siteACC0003-camA010-2023-12-21-19-43-25-000307.jpg',
+            '../assets/siteACC0003-finearts/siteACC0003-camA005-2023-10-16-14-03-00-000176.jpg', 
+            '../assets/siteACC0003-finearts/siteACC0003-camA005-2023-10-16-13-32-00-000201.jpg',
+            '../assets/siteACC0003-finearts/siteACC0003-camA005-2023-10-16-12-33-00-000267.jpg',
+    ]
     
     # image_list = [
     #     '../assets/siteACC0002-mall/merged_data/siteACC0002-camA010-2023-12-21-19-29-06-000932.jpg', 
@@ -160,4 +160,5 @@ if __name__ == '__main__':
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(final_pts)
     pcd.colors = o3d.utility.Vector3dVector(final_cols)  # 这里用从图像里读到的 RGB
-    o3d.io.write_point_cloud("output2.ply", pcd)
+    o3d.io.write_point_cloud(save_path, pcd)
+    print(f"Saved point cloud to {save_path}")
