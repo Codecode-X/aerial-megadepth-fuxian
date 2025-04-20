@@ -111,6 +111,8 @@ class AsymmetricCroCo3DStereo (
 
     def set_downstream_head(self, output_mode, head_type, landscape_only, depth_mode, conf_mode, patch_size, img_size,
                             **kw):
+        if isinstance(img_size, int):
+            img_size = (img_size, img_size)
         assert img_size[0] % patch_size == 0 and img_size[1] % patch_size == 0, \
             f'{img_size=} must be multiple of {patch_size=}'
         self.output_mode = output_mode

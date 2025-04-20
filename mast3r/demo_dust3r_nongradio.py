@@ -112,4 +112,78 @@ if __name__ == '__main__':
     # scene.min_conf_thr = 1.5
 
     # visualize reconstruction
-    scene.show()
+    # scene.show()
+    
+    save_path = '/root/aerial-megadepth-fuxian/assets/reconstructed_scene.ply'
+    
+    import open3d as o3d
+    import numpy as np
+
+    # # 获取点云和置信度
+    # pts3d = scene.get_pts3d()
+    # confidences = scene.get_masks()
+    # # print("============")
+    # # print(confidences[0].type()) # torch.cuda.BoolTensor
+    # # print(confidences[0].shape) # torch.Size([512, 384])
+    
+    # # 应用置信度阈值过滤点云
+    # scene.min_conf_thr = 1.5
+    # mask = confidences
+    # # pts3d_filtered = pts3d[mask]
+    # pts3d_filtered = pts3d
+
+    # # 创建Open3D点云对象
+    # pcd = o3d.geometry.PointCloud()
+    # pcd.points = o3d.utility.Vector3dVector(pts3d_filtered.cpu().numpy())
+
+    # # 假设颜色为白色（可根据需要修改为真实颜色）
+    # colors = np.full((len(pts3d_filtered), 3), 255)
+    # pcd.colors = o3d.utility.Vector3dVector(colors / 255.0)
+
+    # # 保存为PLY文件
+    # o3d.io.write_point_cloud(save_path, pcd)
+    
+    # ---------------------------------------
+    # 获取所有点云和置信度掩码（列表结构）
+    all_pts3d = scene.get_pts3d()  # list of (H,W,3) tensors
+    all_confidences = scene.get_masks()  # list of (H,W) bool tensors
+
+    # 设置置信度阈值（根据实际情况调整）
+    scene.min_conf_thr = 1.5  # 确保阈值设置生效
+
+    # 初始化容器
+    combined_pts = []
+
+    # 遍历每个视图对
+    for pts_tensor, conf_tensor in zip(all_pts3d, all_confidences):
+        # 转换到CPU并转为numpy
+        pts = pts_tensor.detach().cpu().numpy()  # (H,W,3)
+        mask = conf_tensor.detach().cpu().numpy()  # (H,W)
+        
+        # 展平为点云格式
+        h, w = mask.shape
+        pts_flat = pts.reshape(-1, 3)  # (H*W, 3)
+        mask_flat = mask.reshape(-1)   # (H*W,)
+        
+        # 应用置信度过滤
+        valid_pts = pts_flat[mask_flat]  # (N,3)
+        
+        # 收集有效点
+        if valid_pts.shape[0] > 0:
+            combined_pts.append(valid_pts)
+
+    # 合并所有有效点
+    if len(combined_pts) > 0:
+        final_pts = np.concatenate(combined_pts, axis=0)
+    else:
+        raise RuntimeError("No valid points after filtering")
+
+    # 创建点云对象
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(final_pts)
+
+    # 设置颜色（此处示例为白色，真实颜色需投影回图像）
+    pcd.colors = o3d.utility.Vector3dVector(np.ones_like(final_pts)) 
+
+    # 保存结果
+    o3d.io.write_point_cloud("output.ply", pcd)

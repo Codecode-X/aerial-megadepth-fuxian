@@ -115,7 +115,7 @@ def show_duster_pairs(view1, view2, pred1, pred2):
 def auto_cam_size(im_poses):
     return 0.1 * get_med_dist_between_poses(im_poses)
 
-
+import trimesh
 class SceneViz:
     def __init__(self):
         self.scene = trimesh.Scene()
