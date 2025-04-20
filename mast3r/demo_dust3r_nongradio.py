@@ -7,6 +7,8 @@ from dust3r.utils.image import load_images
 from dust3r.image_pairs import make_pairs
 from dust3r.cloud_opt import global_aligner, GlobalAlignerMode
 
+import open3d as o3d
+import numpy as np
 
 def get_args_parser():
     parser = argparse.ArgumentParser()
@@ -115,35 +117,7 @@ if __name__ == '__main__':
     # scene.show()
     
     save_path = '/root/aerial-megadepth-fuxian/assets/reconstructed_scene.ply'
-    
-    import open3d as o3d
-    import numpy as np
 
-    # # 获取点云和置信度
-    # pts3d = scene.get_pts3d()
-    # confidences = scene.get_masks()
-    # # print("============")
-    # # print(confidences[0].type()) # torch.cuda.BoolTensor
-    # # print(confidences[0].shape) # torch.Size([512, 384])
-    
-    # # 应用置信度阈值过滤点云
-    # scene.min_conf_thr = 1.5
-    # mask = confidences
-    # # pts3d_filtered = pts3d[mask]
-    # pts3d_filtered = pts3d
-
-    # # 创建Open3D点云对象
-    # pcd = o3d.geometry.PointCloud()
-    # pcd.points = o3d.utility.Vector3dVector(pts3d_filtered.cpu().numpy())
-
-    # # 假设颜色为白色（可根据需要修改为真实颜色）
-    # colors = np.full((len(pts3d_filtered), 3), 255)
-    # pcd.colors = o3d.utility.Vector3dVector(colors / 255.0)
-
-    # # 保存为PLY文件
-    # o3d.io.write_point_cloud(save_path, pcd)
-    
-    # ---------------------------------------
     # 获取所有点云和置信度掩码（列表结构）
     all_pts3d = scene.get_pts3d()  # list of (H,W,3) tensors
     all_confidences = scene.get_masks()  # list of (H,W) bool tensors
