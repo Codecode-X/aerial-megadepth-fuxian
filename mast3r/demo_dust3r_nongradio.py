@@ -121,43 +121,43 @@ if __name__ == '__main__':
     # 获取所有点云和置信度掩码（列表结构）
     all_pts3d = scene.get_pts3d()  # list of (H,W,3) tensors
     all_confidences = scene.get_masks()  # list of (H,W) bool tensors
+    
+    combined_pts   = []
+    combined_cols  = []
 
-    # 设置置信度阈值（根据实际情况调整）
-    scene.min_conf_thr = 1.5  # 确保阈值设置生效
+    for view_idx, (pts_tensor, conf_tensor) in enumerate(zip(all_pts3d, all_confidences)):
+        # 1) 转 numpy
+        pts = pts_tensor.detach().cpu().numpy()       # (H, W, 3)
+        mask = conf_tensor.detach().cpu().numpy()     # (H, W), bool
 
-    # 初始化容器
-    combined_pts = []
+        H, W, _ = pts.shape
 
-    # 遍历每个视图对
-    for pts_tensor, conf_tensor in zip(all_pts3d, all_confidences):
-        # 转换到CPU并转为numpy
-        pts = pts_tensor.detach().cpu().numpy()  # (H,W,3)
-        mask = conf_tensor.detach().cpu().numpy()  # (H,W)
-        
-        # 展平为点云格式
-        h, w = mask.shape
-        pts_flat = pts.reshape(-1, 3)  # (H*W, 3)
-        mask_flat = mask.reshape(-1)   # (H*W,)
-        
-        # 应用置信度过滤
-        valid_pts = pts_flat[mask_flat]  # (N,3)
-        
-        # 收集有效点
-        if valid_pts.shape[0] > 0:
-            combined_pts.append(valid_pts)
+        # 2) flatten
+        pts_flat  = pts.reshape(-1, 3)                # (H*W, 3)
+        mask_flat = mask.reshape(-1)                  # (H*W,)
 
-    # 合并所有有效点
-    if len(combined_pts) > 0:
-        final_pts = np.concatenate(combined_pts, axis=0)
-    else:
+        valid_idx = np.nonzero(mask_flat)[0]          # 选出有效像素索引
+
+        # 3) 拿到有效点
+        valid_pts = pts_flat[valid_idx]               # (N, 3)
+        combined_pts.append(valid_pts)
+
+        # 4) 取对应颜色
+        img = imgs[view_idx]                          # (H, W, 3), uint8
+        img = img.astype(np.float32) / 255.0          # 归一化到 [0,1]
+        img_flat = img.reshape(-1, 3)                 # (H*W, 3)
+        valid_cols = img_flat[valid_idx]              # (N, 3)
+        combined_cols.append(valid_cols)
+
+    # 合并所有视角
+    if not combined_pts:
         raise RuntimeError("No valid points after filtering")
 
-    # 创建点云对象
+    final_pts   = np.concatenate(combined_pts, axis=0)   # (M, 3)
+    final_cols  = np.concatenate(combined_cols, axis=0)  # (M, 3)
+
+    # 5) 构建有颜色的点云并保存
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(final_pts)
-
-    # 设置颜色（此处示例为白色，真实颜色需投影回图像）
-    pcd.colors = o3d.utility.Vector3dVector(np.ones_like(final_pts)) 
-
-    # 保存结果
-    o3d.io.write_point_cloud("output.ply", pcd)
+    pcd.colors = o3d.utility.Vector3dVector(final_cols)  # 这里用从图像里读到的 RGB
+    o3d.io.write_point_cloud("output2.ply", pcd)
